@@ -1,0 +1,18 @@
+{
+  "name": "social-sc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "deploy.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vite/connector": "^0.0.2",
+    "@vite/vitejs": "^2.3.16",
+    "@vite/vitejs-http": "^2.3.16",
+    "@vite/vitejs-ws": "^2.3.16"
+  }
+}

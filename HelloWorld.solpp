@@ -1,0 +1,75 @@
+pragma soliditypp ^0.4.3;
+
+contract Social {
+    
+    mapping(address=>mapping(address=>uint)) public balances;
+    mapping(address=>uint) public reserve;
+    mapping(address=>uint8) public hasMinted; 
+
+    tokenId token = tokenId("tti_5649544520544f4b454e6e40");
+
+    uint public factor = 3000000000000000;
+
+    event buyEvent(address indexed addr, address indexed vftid, uint256 value, tokenId tid);
+    event sellEvent(address indexed addr, address indexed vftid, uint256 value, tokenId tid);
+    event mintEvent(address indexed addr);
+
+    constructor() public {}
+
+    onMessage mint() {
+        require(hasMinted[msg.sender] == 0, "Address has already mint VFT");
+        hasMinted[msg.sender] = 1;
+        reserve[msg.sender] = 1000;
+        emit mintEvent(msg.sender);
+    }
+
+    onMessage buyVFT(address vftid) payable {
+        require(reserve[vftid] > 0, "Not enough VFT");
+        uint price = calculatePrice(vftid, 1);
+        require(msg.amount >= price, "Price is not equal to sended amount");
+
+        reserve[vftid]--;
+        balances[vftid][msg.sender]++;
+        emit buyEvent(msg.sender, vftid, price, token);
+    }
+
+    onMessage sellVFT(address vftid) {
+        require(balances[vftid][msg.sender] > 0, "Not enough VFT");
+        uint price = calculatePrice(vftid, 0);
+
+        reserve[vftid]++;
+        balances[vftid][msg.sender]--;
+        msg.sender.transfer(token, price);
+        emit sellEvent(msg.sender, vftid, price, token);
+    }
+
+    getter getReserve(address vftid) returns(uint) {
+        return reserve[vftid];
+    }
+
+    getter getBuyPrice(address vftid) returns(uint) {
+        return calculatePrice(vftid, 1);
+    }
+
+    getter getSellPrice(address vftid) returns(uint) {
+        return calculatePrice(vftid, 0);
+    }
+
+    getter getBalance(address vftid, address holder) returns(uint) {
+        return balances[vftid][holder];
+    }
+
+    function calculatePrice(address vftid, int forBuy) public view returns(uint) {
+        uint postCirculating = 1000 - reserve[vftid];
+
+        if(forBuy == 1) {
+            if(reserve[vftid] <= 0) return 0;
+            postCirculating++;
+        } else {
+            if(reserve[vftid] >= 1000) return 0;
+            postCirculating--;
+        }
+
+        return 3000000000000000 * (postCirculating * postCirculating);
+    }
+}
